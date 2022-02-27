@@ -2,3 +2,7 @@ node_modules
 build
 app/src/contracts
 .DS_Store
+
+/node_modules
+
+/.vscode
