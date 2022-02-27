@@ -22,5 +22,9 @@
   "homepage": "https://github.com/truffle-box/drizzle-box#readme",
   "dependencies": {
     "@openzeppelin/contracts": "^2.4.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.10.0",
+    "prettier": "2.5.1"
   }
 }
