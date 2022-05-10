@@ -1,9 +1,25 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@mui/material';
 import Box from '@mui/material/Box';
 import { Link } from 'react-router-dom';
+import { ref, update } from 'firebase/database';
+import { db } from '../../firebase-config';
 
 const Home = () => {
+    useEffect(() => {
+        resetEntry();
+    }, []);
+
+    function resetEntry() {
+        const AllowedEntry = {
+            Allowed: 0,
+            Whom: -1,
+        };
+        const updates = {};
+        updates['/CheckIn/AllowedEntry'] = AllowedEntry;
+        update(ref(db), updates);
+    }
+
     return (
         <div>
             <p>&nbsp;</p>
@@ -20,7 +36,7 @@ const Home = () => {
                     variant="contained"
                     component={Link}
                     to="/checkInStore"
-                    color="error"
+                    color="success"
                     fullWidth
                     style={{ minHeight: '50px' }}
                 >

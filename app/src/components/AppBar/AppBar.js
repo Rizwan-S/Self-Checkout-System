@@ -17,7 +17,7 @@ export default function ButtonAppBar() {
                         component="div"
                         sx={{ flexGrow: 1 }}
                     >
-                        &nbsp;&nbsp;STORE NAME
+                        &nbsp;&nbsp;EASYSHOP
                     </Typography>
                     {/* <Button color="inherit">Login</Button> */}
                 </Toolbar>
