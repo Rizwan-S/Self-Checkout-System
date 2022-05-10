@@ -39,7 +39,6 @@ const CheckIn = () => {
             if (data !== null) {
                 Object.values(data).map((it) => {
                     setSensorFingerprint(it);
-                    console.log('LOADUSERFINGER', it);
                 });
             }
         });
@@ -109,8 +108,8 @@ const CheckIn = () => {
                     );
                 } else {
                     return (
-                        <div>
-                            <h1>{allowEntry}</h1>
+                        <div align="center">
+                            <p>&nbsp;</p>
                             <h1>Please scan your fingerprint</h1>
                         </div>
                     );

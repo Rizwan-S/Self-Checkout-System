@@ -17,6 +17,8 @@ const CheckOut = () => {
     const [pIDs, setpIDs] = useState([]);
     const [final, setFinal] = useState([]);
     const [web3Obj, setWeb3Obj] = useState('');
+    const [sensorFingerprint, setSensorFingerprint] = useState(-1);
+    const [inDB, setInDB] = useState({});
 
     const loadBlockchainData = async () => {
         if (typeof window.ethereum == 'undefined') {
@@ -54,7 +56,37 @@ const CheckOut = () => {
         }
     };
 
-    function loadProducts() {
+    function loadUserFinger() {
+        onValue(ref(db, '/Registered/Id/'), (snapshot) => {
+            const data = snapshot.val();
+            setSensorFingerprint(-1);
+            if (data !== null) {
+                Object.values(data).map((it) => {
+                    setSensorFingerprint(it);
+                });
+            }
+        });
+    }
+
+    function AccountDetails() {
+        onValue(ref(db, '/Users'), (snapshot) => {
+            const data = snapshot.val();
+            if (data !== null) {
+                setInDB({});
+                Object.values(data).map((it) => {
+                    if (it.user.account === account) {
+                        setInDB({
+                            account: it.user.account,
+                            fingerprint: it.user.fingerPrint,
+                        });
+                        // console.log(it);
+                    }
+                });
+            }
+        });
+    }
+
+    const loadProducts = async () => {
         onValue(ref(db, '/Products'), (snapshot) => {
             const data = snapshot.val();
             if (data !== null) {
@@ -72,57 +104,61 @@ const CheckOut = () => {
                 });
             }
         });
-    }
+    };
 
-    function readTags() {
+    const readTags = async () => {
         onValue(ref(db, '/Prod/Ids'), (snapshot) => {
             const data = snapshot.val();
             if (data !== null) {
                 setpIDs([]);
                 Object.values(data).map((it) => {
-                    // setUsers((oldArray) => [...oldArray, it.user.account]);
                     setpIDs((oldArray) => [...oldArray, it]);
-                    // console.log(it);
                 });
             }
         });
-    }
+    };
 
     const payBill = async (beneficiary, amount) => {
-        const Transaction_Contract = new web3Obj.eth.Contract(
-            contractABI,
-            contractAddress
-        );
-        console.log(contractABI);
-        console.log(contractAddress);
+        if (inDB.fingerprint === sensorFingerprint) {
+            const Transaction_Contract = new web3Obj.eth.Contract(
+                contractABI,
+                contractAddress
+            );
+            console.log(contractABI);
+            console.log(contractAddress);
 
-        const accounts = await web3Obj.eth.getAccounts();
-        const account = accounts[0];
+            const accounts = await web3Obj.eth.getAccounts();
+            const account = accounts[0];
 
-        amount = web3Obj.utils.toWei(amount.toString());
-        console.log(amount);
+            amount = web3Obj.utils.toWei(amount.toString());
+            console.log(amount);
 
-        const result = await Transaction_Contract.methods
-            .addToBlockchain(beneficiary, amount)
-            .send({
-                from: account,
-                value: amount,
-            })
-            .on('transactionHash', function (hash) {})
-            .on('receipt', function (receipt) {})
-            .on('confirmation', function (confirmationNumber, receipt) {
-                window.alert('Money has been transferred successfully!');
-            })
-            .on('error', function (error, receipt) {
-                console.log(error);
-                window.alert('An error has occured!');
-            });
+            const result = await Transaction_Contract.methods
+                .addToBlockchain(beneficiary, amount)
+                .send({
+                    from: account,
+                    value: amount,
+                })
+                .on('transactionHash', function (hash) {})
+                .on('receipt', function (receipt) {})
+                .on('confirmation', function (confirmationNumber, receipt) {
+                    window.alert('Money has been transferred successfully!');
+                })
+                .on('error', function (error, receipt) {
+                    console.log(error);
+                    window.alert('An error has occured!');
+                });
 
-        // window.location.reload();
-        console.log(result);
+            // window.location.reload();
+            console.log(result);
+        } else {
+            window.alert('Fingerprint not matched.');
+        }
     };
 
     useEffect(() => {
+        loadUserFinger();
+        AccountDetails();
         setTotal(0);
 
         setFinal([]);
