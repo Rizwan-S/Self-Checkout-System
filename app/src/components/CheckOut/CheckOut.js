@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import Web3 from 'web3';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, set } from 'firebase/database';
 import { db } from '../../firebase-config';
 import { Button } from '@mui/material';
 import Box from '@mui/material/Box';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import BasicTable from './BasicTable';
 
 import { contractABI, contractAddress } from '../../constants';
@@ -19,6 +19,9 @@ const CheckOut = () => {
     const [web3Obj, setWeb3Obj] = useState('');
     const [sensorFingerprint, setSensorFingerprint] = useState(-1);
     const [inDB, setInDB] = useState({});
+    const [paid, setPaid] = useState(true);
+
+    let navigate = useNavigate();
 
     const loadBlockchainData = async () => {
         if (typeof window.ethereum == 'undefined') {
@@ -118,43 +121,57 @@ const CheckOut = () => {
         });
     };
 
+    function deleteProducts() {
+        set(ref(db, 'Prod/'), {});
+        set(ref(db, '/Registered/Id/'), {});
+        let path = `/`;
+        navigate(path);
+    }
+
     const payBill = async (beneficiary, amount) => {
-        if (inDB.fingerprint === sensorFingerprint) {
-            const Transaction_Contract = new web3Obj.eth.Contract(
-                contractABI,
-                contractAddress
-            );
-            console.log(contractABI);
-            console.log(contractAddress);
+        const Transaction_Contract = new web3Obj.eth.Contract(
+            contractABI,
+            contractAddress
+        );
+        console.log(contractABI);
+        console.log(contractAddress);
 
-            const accounts = await web3Obj.eth.getAccounts();
-            const account = accounts[0];
+        const accounts = await web3Obj.eth.getAccounts();
+        const account = accounts[0];
 
-            amount = web3Obj.utils.toWei(amount.toString());
-            console.log(amount);
+        amount = web3Obj.utils.toWei(amount.toString());
+        console.log(amount);
 
-            const result = await Transaction_Contract.methods
-                .addToBlockchain(beneficiary, amount)
-                .send({
-                    from: account,
-                    value: amount,
-                })
-                .on('transactionHash', function (hash) {})
-                .on('receipt', function (receipt) {})
-                .on('confirmation', function (confirmationNumber, receipt) {
-                    window.alert('Money has been transferred successfully!');
-                })
-                .on('error', function (error, receipt) {
-                    console.log(error);
-                    window.alert('An error has occured!');
-                });
+        const result = await Transaction_Contract.methods
+            .addToBlockchain(beneficiary, amount)
+            .send({
+                from: account,
+                value: amount,
+            })
+            .on('transactionHash', function (hash) {})
+            .on('receipt', function (receipt) {})
+            .on('confirmation', function (confirmationNumber, receipt) {
+                window.alert(
+                    'Money has been transferred successfully!\n Thank you for shopping with us!'
+                );
+                setPaid(true);
+                deleteProducts();
+            })
+            .on('error', function (error, receipt) {
+                console.log(error);
+                window.alert('An error has occured!');
+            });
 
-            // window.location.reload();
-            console.log(result);
-        } else {
-            window.alert('Fingerprint not matched.');
-        }
+        // window.location.reload();
+        console.log(result);
     };
+
+    useEffect(() => {
+        if (inDB.fingerprint === sensorFingerprint && paid) {
+            setPaid(false);
+            payBill('0x07B9C50b9A8ceb78796352E181E411E93703827F', total);
+        }
+    }, [inDB, sensorFingerprint]);
 
     useEffect(() => {
         loadUserFinger();
@@ -259,7 +276,8 @@ const CheckOut = () => {
                             </p>
                             <BasicTable rows={final} />
                             <h3>Total ETH to pay: {total}</h3>
-                            <Box m={5} pt={1}>
+                            <h3>Please scan your fingerprint to pay</h3>
+                            <Box m={1} pt={1}>
                                 <Button
                                     align="left"
                                     variant="contained"
@@ -269,29 +287,10 @@ const CheckOut = () => {
                                     style={{
                                         minHeight: '50px',
                                         minWidth: '180px',
-                                        margin: '10px',
+                                        margin: '5px',
                                     }}
                                 >
                                     Go Back
-                                </Button>
-
-                                <Button
-                                    align="right"
-                                    variant="contained"
-                                    color="primary"
-                                    style={{
-                                        minHeight: '50px',
-                                        minWidth: '180px',
-                                        margin: '10px',
-                                    }}
-                                    onClick={() => {
-                                        payBill(
-                                            '0x07B9C50b9A8ceb78796352E181E411E93703827F',
-                                            total
-                                        );
-                                    }}
-                                >
-                                    Pay
                                 </Button>
                             </Box>
                         </div>
@@ -303,13 +302,3 @@ const CheckOut = () => {
 };
 
 export default CheckOut;
-
-// function pushProducts() {
-//     push(ref(db, 'Products/'), {
-//         product: {
-//             Name: 'product4',
-//             price: 4,
-//             id: 2,
-//         },
-//     });
-// }
