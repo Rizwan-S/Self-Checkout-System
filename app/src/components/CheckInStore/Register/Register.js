@@ -8,38 +8,12 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const Register = () => {
     const [account, setAccount] = useState('');
-    const [registerUser, setRegisterUser] = useState({});
-    const [Users, setUsers] = useState([]);
+    const [users, setUsers] = useState([]);
     const [isregistered, setIsRegistered] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
+    const [sensorFingerprint, setSensorFingerprint] = useState(-1);
 
     let navigate = useNavigate();
-
-    function handleCancellation() {
-        set(ref(db, '/CheckIn/RegisterUser/'), {
-            Fingerprint: '',
-            scan: 0,
-        });
-
-        let path = `/`;
-        navigate(path);
-    }
-
-    function confirmRegistration() {
-        push(ref(db, 'Users/'), {
-            user: {
-                account: account,
-                fingerPrint: registerUser.Fingerprint,
-            },
-        });
-
-        set(ref(db, '/CheckIn/RegisterUser/'), {
-            Fingerprint: '',
-            scan: 0,
-        });
-        let path = `/`;
-        navigate(path);
-    }
 
     const loadWeb3 = async () => {
         if (window.ethereum) {
@@ -50,18 +24,6 @@ const Register = () => {
             );
         }
     };
-
-    function loadUserFinger() {
-        setRegisterUser({});
-
-        onValue(ref(db, '/CheckIn/RegisterUser/'), (snapshot) => {
-            setRegisterUser({});
-            const data = snapshot.val();
-            if (data !== null) {
-                setRegisterUser({ ...snapshot.val() });
-            }
-        });
-    }
 
     const loadBlockchainData = async () => {
         // setLoading(true);
@@ -81,7 +43,7 @@ const Register = () => {
         setAccount(accounts[0]);
         const networkId = await web3.eth.net.getId();
 
-        if (networkId == 5777) {
+        if (networkId === 5777) {
             console.log('NETWORK ID LOOP ENTERED');
             // const hello = new web3.eth.Contract(Helloabi.abi, networkData.address);
         } else {
@@ -94,14 +56,63 @@ const Register = () => {
             const data = snapshot.val();
             if (data !== null) {
                 Object.values(data).map((it) => {
-                    setUsers((oldArray) => [...oldArray, it.user.account]);
+                    setUsers((oldArray) => [
+                        ...oldArray,
+                        {
+                            account: it.user.account,
+                            fingerprint: it.user.fingerPrint,
+                        },
+                    ]);
                 });
             }
         });
     }
 
+    function loadUserFinger() {
+        setSensorFingerprint(-1);
+        onValue(ref(db, '/Registered/Id/'), (snapshot) => {
+            const data = snapshot.val();
+            if (data !== null) {
+                Object.values(data).map((it) => {
+                    setSensorFingerprint(it);
+                });
+            }
+        });
+    }
+
+    function handleCancellation() {
+        set(ref(db, '/Registered/Id/'), {});
+
+        let path = `/`;
+        navigate(path);
+    }
+
+    function confirmRegistration() {
+        push(ref(db, 'Users/'), {
+            user: {
+                account: account,
+                fingerPrint: sensorFingerprint,
+            },
+        });
+
+        set(ref(db, '/Registered/Id/'), {});
+        let path = `/`;
+        navigate(path);
+    }
+
     useEffect(() => {
-        loadUsers();
+        setIsRegistered(false);
+        setIsLoaded(false);
+        users.map((user) => {
+            if (user.account === account) {
+                setIsRegistered(true);
+            }
+        });
+        setIsLoaded(true);
+    }, [users]);
+
+    useEffect(() => {
+        setIsLoaded(false);
         if (window.ethereum) {
             window.ethereum.on('chainChanged', () => {
                 window.location.reload();
@@ -109,27 +120,13 @@ const Register = () => {
             window.ethereum.on('accountsChanged', () => {
                 window.location.reload();
             });
-
+            loadUsers();
+            loadUserFinger();
             loadWeb3();
             loadBlockchainData();
-            loadUserFinger();
         }
-    }, []);
-
-    useEffect(() => {}, [isregistered]);
-
-    useEffect(() => {
-        // setIsRegistered(false);
-        setIsLoaded(false);
-        Users.map((user) => {
-            // console.log(user);
-            if (user === account) {
-                setIsRegistered(true);
-                // console.log('FOUND' + user);
-            }
-        });
         setIsLoaded(true);
-    }, [Users]);
+    }, []);
 
     return (
         <div>
@@ -144,7 +141,6 @@ const Register = () => {
                         </div>
                     );
                 } else if (isLoaded && isregistered) {
-                    console.log('IS REGISTERED');
                     return (
                         <div align="center">
                             <p>&nbsp;</p>
@@ -179,11 +175,12 @@ const Register = () => {
                 } else if (
                     isLoaded &&
                     !isregistered &&
-                    (!registerUser || registerUser.scan === 0)
+                    sensorFingerprint === -1
                 ) {
                     return (
                         <div align="center">
                             <p>&nbsp;</p>
+
                             <h1>REGISTER</h1>
                             <h2>ACCOUNT: {account}</h2>
                             <h2>
@@ -204,7 +201,7 @@ const Register = () => {
                             </Box>
                         </div>
                     );
-                } else if (isLoaded) {
+                } else if (isLoaded && sensorFingerprint !== -1) {
                     return (
                         <div align="center">
                             <p>&nbsp;</p>

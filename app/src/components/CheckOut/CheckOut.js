@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Web3 from 'web3';
-import { ref, onValue, push } from 'firebase/database';
+import { ref, onValue } from 'firebase/database';
 import { db } from '../../firebase-config';
 import { Button } from '@mui/material';
 import Box from '@mui/material/Box';
@@ -16,12 +16,14 @@ const CheckOut = () => {
     const [total, setTotal] = useState(0);
     const [pIDs, setpIDs] = useState([]);
     const [final, setFinal] = useState([]);
+    const [web3Obj, setWeb3Obj] = useState('');
 
     const loadBlockchainData = async () => {
         if (typeof window.ethereum == 'undefined') {
             return;
         }
         const web3 = new Web3(window.ethereum);
+        setWeb3Obj(web3);
 
         let url = window.location.href;
         console.log(url);
@@ -34,7 +36,7 @@ const CheckOut = () => {
         setAccount(accounts[0]);
         const networkId = await web3.eth.net.getId();
 
-        if (networkId == 5777) {
+        if (networkId === 5777) {
             console.log('NETWORK ID LOOP ENTERED');
             // const hello = new web3.eth.Contract(Helloabi.abi, networkData.address);
         } else {
@@ -73,10 +75,10 @@ const CheckOut = () => {
     }
 
     function readTags() {
-        setpIDs([]);
         onValue(ref(db, '/Prod/Ids'), (snapshot) => {
             const data = snapshot.val();
             if (data !== null) {
+                setpIDs([]);
                 Object.values(data).map((it) => {
                     // setUsers((oldArray) => [...oldArray, it.user.account]);
                     setpIDs((oldArray) => [...oldArray, it]);
@@ -85,6 +87,40 @@ const CheckOut = () => {
             }
         });
     }
+
+    const payBill = async (beneficiary, amount) => {
+        const Transaction_Contract = new web3Obj.eth.Contract(
+            contractABI,
+            contractAddress
+        );
+        console.log(contractABI);
+        console.log(contractAddress);
+
+        const accounts = await web3Obj.eth.getAccounts();
+        const account = accounts[0];
+
+        amount = web3Obj.utils.toWei(amount.toString());
+        console.log(amount);
+
+        const result = await Transaction_Contract.methods
+            .addToBlockchain(beneficiary, amount)
+            .send({
+                from: account,
+                value: amount,
+            })
+            .on('transactionHash', function (hash) {})
+            .on('receipt', function (receipt) {})
+            .on('confirmation', function (confirmationNumber, receipt) {
+                window.alert('Money has been transferred successfully!');
+            })
+            .on('error', function (error, receipt) {
+                console.log(error);
+                window.alert('An error has occured!');
+            });
+
+        // window.location.reload();
+        console.log(result);
+    };
 
     useEffect(() => {
         setTotal(0);
@@ -211,6 +247,12 @@ const CheckOut = () => {
                                         minHeight: '50px',
                                         minWidth: '180px',
                                         margin: '10px',
+                                    }}
+                                    onClick={() => {
+                                        payBill(
+                                            '0x07B9C50b9A8ceb78796352E181E411E93703827F',
+                                            total
+                                        );
                                     }}
                                 >
                                     Pay
