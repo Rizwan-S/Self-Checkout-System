@@ -40,7 +40,7 @@ The user has to login to their blockchain address on the Metamask browser extens
 
 ## System Architecture
 
-### Components
+### Components Used
 
 The entire system has 4 broad components.
 
@@ -56,9 +56,7 @@ The entire system has 4 broad components.
     <li><b>Web application :</b> The front-end web application provides interface for the customers.</li>
 </ul>
 
-### Components description
-
-#### Fingerprint sensor
+### Fingerprint sensor
 
 In our project, we are using the R307 fingerprint sensor. This along with the Adafruit Fingerprint library, gave us easy functions to record and store fingerprints of users and verify fingerprints against the database.
 
@@ -68,7 +66,7 @@ Upon registration, the fingerprint ID is pushed to the Firebase database which i
 
 The module also gives a convenient and fast search method that goes through the all the stored fingerprints and returns the most likely one and also gives us a confidence level in its prediction. This function is used in the verification process, where the person scans their finger and the closest match is obtained. The ID of the closest match is pushed to Firebase and again used by the front-end. The finger is scanned up to five times until an acceptable image of the finger is taken.
 
-#### RFID readers
+### RFID readers
 
 RFID is quite a ubiquitous technology used for many different applications. RFID technology is cheap and power efficient which makes it suitable for our application as well. We used the RFID-RC522 reader and tags whose range extends to about 1-2 cm. This particular restriction makes it difficult for us to prevent shoplifting because if the range was higher, we planned to make every customer walk through gates containing RFID reader that can detect all the tags both concealed and non-concealed. This was even supposed to make check-out easier and faster. With this limited range RFID tags, each of which correspond to a particular product, have to be placed at the reader like any other store.
 
@@ -76,15 +74,15 @@ Each RFID tag stores some particular data and has a unique ID called a UID. Our 
 
 We also used an ESP8266 NodeMCU board which has a WiFi module to help us transfer data to the Firebase database. It connects to a Mobile Hotspot and also allows us to use Firebase modules to push and pull from the database.
 
-#### Firebase real time database
+### Firebase real time database
 
 Firebase real-time database is used to establish communication between web-app and the sensors using shared memory. Whenever a user scan's a fingerprint, it will be put on Firebase for the web-app to fetch and process accordingly.
 
-#### Web application
+### Web application
 
 The web application is an interface for the user to navigate and use the system conveniently. The web application is developed using React.Js and works synchronously with smart contract and sensors. There are two main components in the web-app namely check-in and check-out. In check-in, the user can either register or enter the store. If the user is registered, they cannot register again. Similarly, the user cannot proceed to checkin without registration. In check-out, all the products scanned by RFID reader will be rendered. The user can check the items and proceed to pay the amount in Ethereum using MetaMask wallet provider. In order to pay, the user has to connect their account and scan the fingerprint. Fingerprint based authentication is enabled in registration, check-in and check-out to prevent illegal transactions.
 
-#### Ethereum blockchain
+### Ethereum blockchain
 
 This is the most important aspect of the project in terms of maintaining user privacy. We are using Ethereum blockchain to create smart contracts. All the registered accounts are stored on blockchain ledger along with their hashed fingerprints. The accounts present in the ledger can enter the store just by scanning their fingerprint. Similarly, these accounts can pay the bill and checkout of the store using just their fingerprints after connecting their wallet. The blockchain ledger also stores all the transaction history and the available products.
 
