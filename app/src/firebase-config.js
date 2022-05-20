@@ -3,14 +3,14 @@ import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
 
 const firebaseConfig = {
-    apiKey: 'AIzaSyCScHbuaCEpI3icOAfzHI8Aol3DGTHp-qk',
-    authDomain: 'iotprojectbillingstore.firebaseapp.com',
-    databaseURL: 'https://iotprojectbillingstore-default-rtdb.firebaseio.com',
-    projectId: 'iotprojectbillingstore',
-    storageBucket: 'iotprojectbillingstore.appspot.com',
-    messagingSenderId: '1058934529602',
-    appId: '1:1058934529602:web:da413f00f6e39a71d717db',
-    measurementId: 'G-RSLVLFWEH2',
+    apiKey: '',
+    authDomain: '',
+    databaseURL: '',
+    projectId: '',
+    storageBucket: '',
+    messagingSenderId: '',
+    appId: '',
+    measurementId: '',
 };
 
 const app = initializeApp(firebaseConfig);
