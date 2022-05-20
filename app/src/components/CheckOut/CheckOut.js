@@ -160,6 +160,8 @@ const CheckOut = () => {
             .on('error', function (error, receipt) {
                 console.log(error);
                 window.alert('An error has occured!');
+                setPaid(true);
+                deleteProducts();
             });
 
         // window.location.reload();
@@ -209,7 +211,7 @@ const CheckOut = () => {
             tot += initial[i].price * initial[i].quantity;
         }
         setTotal(tot);
-    }, [pIDs, rows]);
+    }, [pIDs, rows, final.length]);
 
     useEffect(() => {
         setIsLoading(true);

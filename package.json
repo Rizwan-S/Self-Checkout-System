@@ -21,7 +21,8 @@
   },
   "homepage": "https://github.com/truffle-box/drizzle-box#readme",
   "dependencies": {
-    "@openzeppelin/contracts": "^2.4.0"
+    "@openzeppelin/contracts": "^2.4.0",
+    "solc": "^0.8.4"
   },
   "devDependencies": {
     "eslint": "^8.10.0",
